@@ -58,7 +58,8 @@ class Auth with ChangeNotifier {
           ),
         ),
       );
-      _autoLogout();
+      _createAutoLogoutTimer();
+
       notifyListeners();
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode(
@@ -98,27 +99,26 @@ class Auth with ChangeNotifier {
     _userId = extractedUserData['userId'];
     _expiryDate = expiryDate;
     notifyListeners();
-    _autoLogout();
+    _createAutoLogoutTimer();
     return true;
   }
 
   Future<void> logout() async {
     _token = null;
-    _userId = null;
     _expiryDate = null;
+    _userId = null;
     if (_authTimer != null) {
-      _authTimer?.cancel();
+      _authTimer!.cancel();
       _authTimer = null;
     }
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    // prefs.remove('userData');
     prefs.clear();
   }
 
-  void _autoLogout() {
+  void _createAutoLogoutTimer() {
     if (_authTimer != null) {
-      _authTimer?.cancel();
+      _authTimer!.cancel();
     }
     final timeToExpiry = _expiryDate!.difference(DateTime.now()).inSeconds;
     _authTimer = Timer(Duration(seconds: timeToExpiry), logout);
